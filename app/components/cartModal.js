@@ -1,38 +1,78 @@
 "use client";
 
-import { forwardRef, useImperativeHandle, useRef, useState } from "react";
+import {
+  forwardRef,
+  useImperativeHandle,
+  useRef,
+  useState,
+  useContext,
+} from "react";
 import { createPortal } from "react-dom";
 import Cart from "./cart";
+import { CartContext } from "../store/shopping-cart-context"; // Import Cart Context
 
-const CartModal = forwardRef(function Modal({ title, actions }, ref) {
+const CartModal = forwardRef(function Modal({ title }, ref) {
   const dialog = useRef();
-  const [isOpen, setIsOpen] = useState(false); // ✅ Add state to control modal visibility
+  const [isOpen, setIsOpen] = useState(false);
+  const cartCtx = useContext(CartContext) || { items: [] }; // Ensure cartCtx is always defined
 
   useImperativeHandle(ref, () => ({
     open: () => {
       setIsOpen(true);
-      setTimeout(() => dialog.current?.showModal(), 0); // Ensure it mounts before calling `showModal`
+      setTimeout(() => {
+        if (dialog.current) dialog.current.showModal();
+      }, 0);
     },
     close: () => {
+      if (dialog.current) dialog.current.close();
       setIsOpen(false);
-      dialog.current?.close();
     },
   }));
 
-  if (!isOpen) return null; // ✅ Prevent rendering when closed
+  if (!isOpen) return null;
+
+  async function handleCheckout() {
+    try {
+      if (!cartCtx.items.length) {
+        console.warn("Cart is empty!");
+        return;
+      }
+
+      const cartItems = cartCtx.items.map((item) => ({
+        name: item.name,
+        price: item.price,
+        quantity: item.quantity,
+      }));
+
+      const response = await fetch("/api/checkout_sessions", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ items: cartItems }),
+      });
+
+      if (!response.ok) throw new Error("Failed to create Stripe session");
+
+      const { url } = await response.json();
+      window.location.href = url; // Redirect to Stripe Checkout
+    } catch (error) {
+      console.error("Checkout Error:", error);
+    }
+  }
 
   return createPortal(
-    <dialog ref={dialog} onClose={() => setIsOpen(false)}>
+    <dialog ref={dialog} onCancel={() => ref.current.close()}>
       <h2>{title}</h2>
       <Cart />
-      <form method="dialog" id="modal-actions">
-        {actions}
-        <button type="button" onClick={() => ref.current.close()}>
-          Close
-        </button>
-      </form>
+
+      <button type="button" onClick={handleCheckout}>
+        Checkout
+      </button>
+
+      <button type="button" onClick={() => ref.current.close()}>
+        Close
+      </button>
     </dialog>,
-    document.body // ✅ Ensure modal is mounted correctly
+    document.body
   );
 });
 
