@@ -22,7 +22,7 @@ export async function POST(req) {
       price_data: {
         currency: "usd",
         product_data: { name: item.name },
-        unit_amount: Math.round(item.price * 100), // Convert price from dollars to cents
+        unit_amount: Math.round(item.price * 100), // Convert to cents
       },
       quantity: item.quantity,
     }));
