@@ -7,7 +7,7 @@ import CartContextProvider from "./store/shopping-cart-context";
 function App() {
   return (
     <CartContextProvider>
-      <Header />
+      {/* <Header /> */}
       <Shop>
         {DUMMY_PRODUCTS.map((product) => (
           <li key={product.id}>

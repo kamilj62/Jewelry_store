@@ -1,6 +1,9 @@
-import { notFound } from "next/navigation";
+"use client"; // ✅ Required for Client Component
 
-// Simulated product data (this would come from a database in a real app)
+import { useContext } from "react";
+import { useParams, notFound } from "next/navigation";
+import { CartContext } from "../../store/shopping-cart-context";
+
 const products = [
   {
     id: "p1",
@@ -20,20 +23,16 @@ const products = [
   },
 ];
 
-export default async function ProductPage({ params }) {
-  if (!params) {
-    return notFound();
-  }
+export default function ProductPage() {
+  const { jewelrySlug } = useParams(); // ✅ Correct way to access params
 
-  // Ensure params is awaited
-  const { jewelrySlug } = await params;
-
-  // Find product based on slug
   const product = products.find((p) => p.slug === jewelrySlug);
 
   if (!product) {
     return notFound();
   }
+
+  const { addItemToCart } = useContext(CartContext);
 
   return (
     <div className="container mx-auto px-4 py-8 flex justify-center">
@@ -68,7 +67,10 @@ export default async function ProductPage({ params }) {
               <p className="text-gray-600 mt-2">{product.description}</p>
 
               <div className="mt-6">
-                <button className="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600 transition">
+                <button
+                  className="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600 transition"
+                  onClick={() => addItemToCart(product.id)}
+                >
                   Add to Cart
                 </button>
               </div>
