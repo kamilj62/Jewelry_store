@@ -6,16 +6,13 @@ import CartContextProvider from "./store/shopping-cart-context";
 
 function App() {
   return (
-    <CartContextProvider>
-      {/* <Header /> */}
-      <Shop>
-        {DUMMY_PRODUCTS.map((product) => (
-          <li key={product.id}>
-            <Product {...product} />
-          </li>
-        ))}
-      </Shop>
-    </CartContextProvider>
+    <Shop>
+      {DUMMY_PRODUCTS.map((product) => (
+        <li key={product.id}>
+          <Product {...product} />
+        </li>
+      ))}
+    </Shop>
   );
 }
 
